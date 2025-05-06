@@ -26,6 +26,13 @@ DBPASSWORD = get_env_variable('DBPASSWORD')
 DBHOST = get_env_variable('DBHOST')
 DBPORT = get_env_variable('DBPORT')
 
+# S3 접근 설정
+AWS_S3_ACCESS_KEY_ID = get_env_variable("DJANGO_AWS_S3_ACCESS_KEY_ID")
+AWS_S3_SECRET_ACCESS_KEY = get_env_variable("DJANGO_AWS_S3_SECRET_ACCESS_KEY")
+AWS_S3_STORAGE_BUCKET_NAME = get_env_variable("DJANGO_AWS_S3_STORAGE_BUCKET_NAME")
+AWS_S3_REGION = get_env_variable("DJANGO_AWS_S3_REGION")
+AWS_S3_POST_IMAGE_FOLDER_NAME = "posts/"
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
