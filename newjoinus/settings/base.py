@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     # 앱
     'users',
     'market',
+    'join',
 ]
 
 MIDDLEWARE = [
@@ -67,7 +68,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'newjoinus.wsgi.application'
-
 
 
 # Password validation
