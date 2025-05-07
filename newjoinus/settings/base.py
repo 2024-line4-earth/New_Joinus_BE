@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'users',
     'market',
     'join',
+    'share',
 ]
 
 MIDDLEWARE = [
