@@ -17,10 +17,6 @@ class SharedCard(models.Model):
         help_text="원본 카드",
     )
     description = models.TextField(help_text="추가 설명")
-    is_finalized = models.BooleanField(
-        default=False,
-        help_text="보관상태(공유중단상태) 여부",
-    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

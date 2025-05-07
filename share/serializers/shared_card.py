@@ -6,12 +6,5 @@ class SharedCardSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SharedCard
-        fields = ["id", "user", "cardpost", "description",
-                    "is_finalized", "created_at"]
-        read_only_fields = ["is_finalized", "created_at"]
-
-class SharedCardFinalizeSerializer(serializers.ModelSerializer):
-    """is_finalized 전용 입력"""
-    class Meta:
-        model = SharedCard
-        fields = ["is_finalized"]
+        fields = ["id", "user", "cardpost", "description", "created_at"]
+        read_only_fields = ["created_at"]
