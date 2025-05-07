@@ -2,6 +2,9 @@ from rest_framework import serializers
 from .models import *
 from market.models import Item, Purchase
 from market.serializers import ItemListSerializer
+from join.models.card_post import CardPost
+from datetime import date, timedelta
+from django.db.models import Count
 
 class UsSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')
@@ -9,16 +12,15 @@ class UsSerializer(serializers.ModelSerializer):
     available_items = serializers.SerializerMethodField()
     current_theme = serializers.ReadOnlyField(source='user.current_theme')
     daily_message = serializers.SerializerMethodField()
-    #total_cards = serializers.SerializerMethodField() # 총 누적된 카드 개수
+    total_cards = serializers.SerializerMethodField()
 
     class Meta:
         model = Us
-        fields = ("username", "current_theme", "points", "daily_message", "available_items")
-        
-        # "total_cards", "my_lank", "comment"
+        fields = ("username", "current_theme", "points", "daily_message", "total_cards", "available_items")
 
-    #def get_total_cards(self, obj):
-    #    return CardPost.objects.filter(author=obj.user).count()
+    # 총 누적 카드 개수
+    def get_total_cards(self, obj):
+        return CardPost.objects.filter(user=obj.user).count()
 
     # 마켓에서 구매 가능한 아이템
     def get_available_items(self, obj):
@@ -34,8 +36,9 @@ class UsSerializer(serializers.ModelSerializer):
 
         return ItemListSerializer(buyable_items, many=True).data
     
+    # 데일리 메세지
     def get_daily_message(self, obj):
         from datetime import date
         today = date.today()
         selected = SelectedDailyMessage.objects.filter(date=today).first()
-        return selected.message.content if selected else "당신이 있어서 세상이 더 아름다워요."
+        return selected.message.content if selected else "당신이 있어서 세상이 더 아름다워요"
