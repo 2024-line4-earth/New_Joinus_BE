@@ -38,11 +38,14 @@ INSTALLED_APPS = [
     'market',
     'join',
     'us',
+    'ranking',
 ]
 
 CRONJOBS = [
     ('0 0 * * *', 'us.cron.daily_message_cron'), # US앱 데일리 메세지, 0 0 * * *: 매일 자정마다 실행
+    ('5 0 * * *', 'ranking.cron.update_stats_cron'), # lanking 앱 사용자 순위 집계
 ]
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -104,7 +107,7 @@ TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
