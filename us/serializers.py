@@ -3,8 +3,9 @@ from .models import *
 from market.models import Item, Purchase
 from market.serializers import ItemListSerializer
 from join.models.card_post import CardPost
-from datetime import date, timedelta
-from django.db.models import Count
+from ranking.models import MonthlyCardStat
+
+from datetime import date
 
 class UsSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')
@@ -13,10 +14,11 @@ class UsSerializer(serializers.ModelSerializer):
     current_theme = serializers.ReadOnlyField(source='user.current_theme')
     daily_message = serializers.SerializerMethodField()
     total_cards = serializers.SerializerMethodField()
+    my_rank = serializers.SerializerMethodField()
 
     class Meta:
         model = Us
-        fields = ("username", "current_theme", "points", "daily_message", "total_cards", "available_items")
+        fields = ("username", "my_rank", "current_theme", "points", "daily_message", "total_cards", "available_items")
 
     # 총 누적 카드 개수
     def get_total_cards(self, obj):
@@ -42,3 +44,19 @@ class UsSerializer(serializers.ModelSerializer):
         today = date.today()
         selected = SelectedDailyMessage.objects.filter(date=today).first()
         return selected.message.content if selected else "당신이 있어서 세상이 더 아름다워요"
+
+    def get_my_rank(self, obj):
+        user = obj.user
+        today = date.today()
+        year, month = today.year, today.month
+
+        my_stat = MonthlyCardStat.objects.filter(user=user, year=year, month=month).first()
+        all_stats = list(
+            MonthlyCardStat.objects.filter(year=year, month=month)
+            .order_by('-card_count', 'earliest_created_at')
+            .values_list('user_id', flat=True)
+        )
+
+        if my_stat:
+            return my_stat.rank
+        return len(all_stats) + 1
