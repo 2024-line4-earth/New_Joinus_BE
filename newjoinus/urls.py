@@ -22,4 +22,6 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('market/', include('market.urls')),
     path('join/', include('join.urls')),
+    path('us/', include('us.urls')),
+    path('ranking/', include('ranking.urls')),
 ]
