@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'users',
     'market',
     'join',
+    'share',
     'us',
     'ranking',
 ]
