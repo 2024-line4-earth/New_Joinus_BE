@@ -1,48 +1,47 @@
-from .models import MonthlyCardStat
+from users.models import User
 
+import redis
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from datetime import date
-from rest_framework import status
+from datetime import datetime
+
+r = redis.StrictRedis(host="127.0.0.1", port=6379, db=0)
 
 class TopTwentyView(APIView):
     def get(self, request):
-        today = date.today()
-        year, month = today.year, today.month
+        now = datetime.now()
+        redis_key = f"rank:{now.year}:{now.month}"
+        user_id_str = str(request.user.id)
 
-        top_stats = MonthlyCardStat.objects.filter(
-            year=year, month=month
-        ).select_related('user').order_by('-card_count', 'earliest_created_at')[:20]
+        # 상위 20위 가져오기
+        top_raw = r.zrevrange(redis_key, 0, 19, withscores=True)
+        users_data = []
+        for rank, (uid, score) in enumerate(top_raw, start=1):
+            uid_int = int(uid.decode())
+            user = User.objects.filter(id=uid_int).first()
+            if user:
+                users_data.append({
+                    "rank": rank,
+                    "username": user.username,
+                    "card_count": int(score)
+                })
 
-        top_20 = [
-            {
-                "rank": idx,
-                "username": stat.user.username,
-                "card_count": stat.card_count
-            }
-            for idx, stat in enumerate(top_stats, start=1)
-        ]
+        # 내 순위
+        my_rank = r.zrevrank(redis_key, user_id_str)
+        my_score = r.zscore(redis_key, user_id_str)
 
-        my_stat = MonthlyCardStat.objects.filter(
-            user=request.user, year=year, month=month
-        ).first()
-
-        all_stats = list(
-            MonthlyCardStat.objects.filter(year=year, month=month)
-            .order_by('-card_count', 'earliest_created_at')
-            .values_list('user_id', flat=True)
-        )
-
-        if my_stat:
-            my_rank = my_stat.rank
-            my_card_count = my_stat.card_count
+        # redis는 인덱스가 0부터 시작
+        if my_rank is not None:
+            my_rank = my_rank + 1
         else:
-            my_rank = len(all_stats) + 1
-            my_card_count = 0
-
+            # Redis에 등록되지 않은 유저 > 꼴찌 등수 부여
+            registered_users = r.zcard(redis_key)
+            my_rank = registered_users + 1
+            my_score = 0
+            
         return Response({
-            "top_20": top_20,
+            "top_20": users_data,
             "my_rank": my_rank,
-            "my_card_count": my_card_count,
-        }, status=status.HTTP_200_OK)
+            "my_card_count": int(my_score) if my_score else 0
+        })
 

@@ -1,9 +1,6 @@
 from rest_framework import serializers
-from .models import MonthlyCardStat
 
-class RankUserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username')
-
-    class Meta:
-        model = MonthlyCardStat
-        fields = ['username', 'card_count']
+class RankUserSerializer(serializers.Serializer):
+    rank = serializers.IntegerField()
+    username = serializers.CharField()
+    card_count = serializers.IntegerField()
