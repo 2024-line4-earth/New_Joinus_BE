@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 CRONJOBS = [
     ('0 0 * * *', 'us.cron.daily_message_cron'), # US앱 데일리 메세지
     ('5 0 * * *', 'ranking.cron.update_stats_cron'), # lanking 앱 사용자 순위 집계
+    ('0 1 1 * *', 'ranking.cron.reward_rankers_cron'), # 매달 1일 오전 1시 탑 20위 포인트 지급
 ]
 
 # 랭킹 앱 redis

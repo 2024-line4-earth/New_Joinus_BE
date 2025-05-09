@@ -23,6 +23,7 @@ class TopTwentyView(APIView):
                 users_data.append({
                     "rank": rank,
                     "username": user.username,
+                    "user_id": user.id,
                     "card_count": int(score)
                 })
 
