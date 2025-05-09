@@ -49,15 +49,26 @@ class UsSerializer(serializers.ModelSerializer):
 
     # 순위 구하기
     def get_my_rank(self, obj):
-        user_id_str = str(obj.user.id)
         now = datetime.now()
         redis_key = f"rank:{now.year}:{now.month}"
+        first_key = f"{redis_key}:first"
+        user_id_str = str(obj.user.id)
 
-        rank = r.zrevrank(redis_key, user_id_str)
+        # 전체 랭킹 불러오기
+        rankings = r.zrevrange(redis_key, 0, -1, withscores=True)
 
-        if rank is not None:
-            return rank + 1
-        else:
-            # 카드를 생성하지 않은 유저 > 꼴찌 등수
-            total_ranked = r.zcard(redis_key)
-            return total_ranked + 1
+        sorted_users = sorted([
+            {
+                "user_id": int(uid.decode()),
+                "score": int(score),
+                "first_ts": float(r.hget(first_key, uid.decode()) or 0)
+            }
+            for uid, score in rankings
+        ], key=lambda x: (-x["score"], x["first_ts"]))  # 점수 내림차순, 먼저 만든 시간 오름차순
+
+        for idx, user in enumerate(sorted_users, start=1):
+            if user["user_id"] == obj.user.id:
+                return idx
+
+        # redis에 없는 유저는 꼴찌
+        return len(sorted_users) + 1

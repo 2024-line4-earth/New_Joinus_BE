@@ -16,7 +16,7 @@ def reward_top_rankers():
 
     # 전달 랭킹에 대해 지급. push 할 때-1 추가 해야 함
     year = now.year
-    month = now.month
+    month = now.month -1
     if month == 0:
         year -= 1
         month = 12
