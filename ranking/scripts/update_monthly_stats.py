@@ -27,7 +27,7 @@ def monthly_stats():
         {
             "user_id": int(uid.decode()),
             "score": int(score),
-            "first_ts": float(r.hget(first_key, uid) or 0)
+            "first_ts": float(r.hget(first_key, uid.decode()) or 0)
         }
         for uid, score in rankings
     ], key=lambda x: (-x["score"], x["first_ts"]))

@@ -12,3 +12,7 @@ class ServiceConfigConstants:
     CARDPOST_CREATE_POINT: Final[int] = int(100)
 
     TUTORIAL_COMPLETED_POINT: Final[int] = int(500)
+
+    RANK_TOP3_REWARD: Final[int] = int(1000)
+    
+    RANK_4TO20_REWARD: Final[int] = int(500)

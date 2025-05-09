@@ -3,9 +3,11 @@ from .models import *
 from market.models import Item, Purchase
 from market.serializers import ItemListSerializer
 from join.models.card_post import CardPost
-from ranking.models import MonthlyCardStat
 
-from datetime import date
+import redis
+from datetime import datetime
+
+r = redis.StrictRedis(host="127.0.0.1", port=6379, db=0)
 
 class UsSerializer(serializers.ModelSerializer):
     username = serializers.ReadOnlyField(source='user.username')
@@ -45,18 +47,28 @@ class UsSerializer(serializers.ModelSerializer):
         selected = SelectedDailyMessage.objects.filter(date=today).first()
         return selected.message.content if selected else "당신이 있어서 세상이 더 아름다워요"
 
+    # 순위 구하기
     def get_my_rank(self, obj):
-        user = obj.user
-        today = date.today()
-        year, month = today.year, today.month
+        now = datetime.now()
+        redis_key = f"rank:{now.year}:{now.month}"
+        first_key = f"{redis_key}:first"
+        user_id_str = str(obj.user.id)
 
-        my_stat = MonthlyCardStat.objects.filter(user=user, year=year, month=month).first()
-        all_stats = list(
-            MonthlyCardStat.objects.filter(year=year, month=month)
-            .order_by('-card_count', 'earliest_created_at')
-            .values_list('user_id', flat=True)
-        )
+        # 전체 랭킹 불러오기
+        rankings = r.zrevrange(redis_key, 0, -1, withscores=True)
 
-        if my_stat:
-            return my_stat.rank
-        return len(all_stats) + 1
+        sorted_users = sorted([
+            {
+                "user_id": int(uid.decode()),
+                "score": int(score),
+                "first_ts": float(r.hget(first_key, uid.decode()) or 0)
+            }
+            for uid, score in rankings
+        ], key=lambda x: (-x["score"], x["first_ts"]))  # 점수 내림차순, 먼저 만든 시간 오름차순
+
+        for idx, user in enumerate(sorted_users, start=1):
+            if user["user_id"] == obj.user.id:
+                return idx
+
+        # redis에 없는 유저는 꼴찌
+        return len(sorted_users) + 1

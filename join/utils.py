@@ -27,5 +27,5 @@ def increase_rank_score(user):
 
     # 최초 생성 시간 기록 (동점자 정렬용)
     first_key = f"{redis_key}:first"
-    if not r.hexists(first_key, user.id):
-        r.hset(first_key, user.id, now.timestamp())
+    if not r.hexists(first_key, str(user.id)):
+        r.hset(first_key, str(user.id), now.timestamp())
