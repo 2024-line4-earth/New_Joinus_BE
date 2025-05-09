@@ -43,10 +43,20 @@ INSTALLED_APPS = [
 ]
 
 CRONJOBS = [
-    ('0 0 * * *', 'us.cron.daily_message_cron'), # US앱 데일리 메세지, 0 0 * * *: 매일 자정마다 실행
+    ('0 0 * * *', 'us.cron.daily_message_cron'), # US앱 데일리 메세지
     ('5 0 * * *', 'ranking.cron.update_stats_cron'), # lanking 앱 사용자 순위 집계
 ]
 
+# 랭킹 앱 redis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',

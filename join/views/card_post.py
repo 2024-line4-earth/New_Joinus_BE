@@ -2,6 +2,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from join.models import CardPost
 from join.serializers import CardPostSerializer
+from join.utils import increase_rank_score # 랭킹
 
 class CardPostListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -13,3 +14,6 @@ class CardPostListCreateView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
     
+    def perform_create(self, serializer):
+        card = serializer.save(user=self.request.user)
+        increase_rank_score(card.user)
