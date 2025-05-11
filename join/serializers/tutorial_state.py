@@ -9,7 +9,5 @@ class UserTutorialStateSerializer(serializers.ModelSerializer):
         fields = ["tutorial_completed"]
 
     def update(self, instance, validated_data):
-        if not instance.tutorial_completed and validated_data.get("tutorial_completed"):
-            PointService.add(instance.user, SCC.TUTORIAL_COMPLETED_POINT, "튜토리얼 완료")
         return super().update(instance, validated_data)
     
