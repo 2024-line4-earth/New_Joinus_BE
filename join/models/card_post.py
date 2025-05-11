@@ -21,4 +21,4 @@ class CardPost(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self) -> str:
-        return f"CardPost({self.id}) by {self.user_id}"
+        return f"CardPost({self.id}) by {self.user_id} in {self.created_at}"

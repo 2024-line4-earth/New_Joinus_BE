@@ -11,37 +11,49 @@ class TopTwentyView(APIView):
     def get(self, request):
         now = datetime.now()
         redis_key = f"rank:{now.year}:{now.month}"
+        first_key = f"{redis_key}:first"
         user_id_str = str(request.user.id)
 
+        # 점수 기준으로 상위 n명 가져오기
+        top_raw = r.zrevrange(redis_key, 0, -1, withscores=True)  # 전체 가져오기
+
+        # 점수 + 최초 생성 시간 기준 정렬
+        top_sorted = sorted([
+            {
+                "user_id": int(uid.decode()),
+                "score": int(score),
+                "first_ts": float(r.hget(first_key, uid) or 0)
+            }
+            for uid, score in top_raw
+        ], key=lambda x: (-x["score"], x["first_ts"]))
+
         # 상위 20위 가져오기
-        top_raw = r.zrevrange(redis_key, 0, 19, withscores=True)
+        top_20 = top_sorted[:20]
         users_data = []
-        for rank, (uid, score) in enumerate(top_raw, start=1):
-            uid_int = int(uid.decode())
-            user = User.objects.filter(id=uid_int).first()
+        for idx, entry in enumerate(top_20, start=1):
+            user = User.objects.filter(id=entry["user_id"]).first()
             if user:
                 users_data.append({
-                    "rank": rank,
+                    "rank": idx,
                     "username": user.username,
-                    "card_count": int(score)
+                    "user_id": user.id,
+                    "card_count": entry["score"]
                 })
 
         # 내 순위
-        my_rank = r.zrevrank(redis_key, user_id_str)
-        my_score = r.zscore(redis_key, user_id_str)
+        my_rank = next((idx + 1 for idx, entry in enumerate(top_sorted)
+                        if entry["user_id"] == request.user.id), None)
 
-        # redis는 인덱스가 0부터 시작
-        if my_rank is not None:
-            my_rank = my_rank + 1
-        else:
-            # Redis에 등록되지 않은 유저 > 꼴찌 등수 부여
-            registered_users = r.zcard(redis_key)
-            my_rank = registered_users + 1
+        my_score = next((entry["score"] for entry in top_sorted
+                        if entry["user_id"] == request.user.id), 0)
+
+        if my_rank is None:
+            my_rank = len(top_sorted) + 1
             my_score = 0
-            
+
         return Response({
             "top_20": users_data,
             "my_rank": my_rank,
-            "my_card_count": int(my_score) if my_score else 0
+            "my_card_count": my_score
         })
 
