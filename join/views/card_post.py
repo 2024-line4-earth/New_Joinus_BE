@@ -3,10 +3,15 @@ from rest_framework.response import Response
 from join.models import CardPost
 from join.serializers import CardPostSerializer
 from join.utils import increase_rank_score # 랭킹
+from join.services import TutorialStateService
 
 class CardPostListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = CardPostSerializer
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        TutorialStateService.check_tutorial_state(user=request.user)
 
     def get_queryset(self):
         return CardPost.objects.filter(user=self.request.user)
