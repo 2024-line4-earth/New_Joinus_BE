@@ -12,13 +12,14 @@ class CardPostSerializer(serializers.ModelSerializer):
         allow_empty=False,
         write_only=True,
     )
-    image_url = serializers.SerializerMethodField(read_only=True)
+    small_image_url = serializers.SerializerMethodField(read_only=True)
+    large_image_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = CardPost
-        fields = ["id", "keywords", "image", "image_key",
-                    "image_url", "created_at"]
-        read_only_fields = ["id", "image_key", "image_url", "created_at"]
+        fields = ["id", "keywords", "image",
+                    "small_image_url", "large_image_url", "created_at"]
+        read_only_fields = ["id", "small_image_url", "large_image_url","created_at"]
 
     def create(self, validated_data):
         user = self.context["request"].user
@@ -36,6 +37,9 @@ class CardPostSerializer(serializers.ModelSerializer):
         PointService.add(user, SCC.CARDPOST_CREATE_POINT, "실천 카드 생성")
         return instance
 
-    def get_image_url(self, obj):
-        return S3Service.generate_presigned_get_url(obj.image_key)
+    def get_small_image_url(self, obj):
+        return S3Service.generate_small_image_presigned_get_url(obj.image_key)
+    
+    def get_large_image_url(self, obj):
+        return S3Service.generate_large_image_presigned_get_url(obj.image_key)
 
