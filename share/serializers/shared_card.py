@@ -4,6 +4,7 @@ from join.services import PointService
 from share.models import SharedCard
 from join.serializers import CardPostSerializer
 from constants import ServiceConfigConstants as SCC
+from django.db import IntegrityError
 
 class SharedCardSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -17,7 +18,11 @@ class SharedCardSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at"]
 
     def create(self, validated_data):
-        shared_card = SharedCard.objects.create(**validated_data)
+        try:
+            shared_card = SharedCard.objects.create(**validated_data)
+        except IntegrityError:
+            raise serializers.ValidationError("이미 공유된 카드입니다.")
+        
         PointService.add(shared_card.user, SCC.SHAREDCARD_CREATE_POINT, "공유 보상")
         return shared_card
     
