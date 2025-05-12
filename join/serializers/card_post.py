@@ -11,12 +11,26 @@ class CardPostSerializer(serializers.ModelSerializer):
     )
     small_image_url = serializers.SerializerMethodField(read_only=True)
     large_image_url = serializers.SerializerMethodField(read_only=True)
+    is_shared = serializers.SerializerMethodField()
 
     class Meta:
         model = CardPost
-        fields = ["id", "keyword", "image",
-                    "small_image_url", "large_image_url", "created_at"]
+        fields = [
+            "id", 
+            "keyword",
+            "image",
+            "small_image_url", 
+            "large_image_url", 
+            "is_shared",
+            "created_at"
+        ]
         read_only_fields = ["id", "small_image_url", "large_image_url", "created_at"]
+
+    def __init__(self, *args, **kwargs):
+        hide_is_shared = kwargs.pop("hide_is_shared", False)
+        super().__init__(*args, **kwargs)
+        if hide_is_shared:
+            self.fields.pop("is_shared", None)
 
     def create(self, validated_data):
         user = self.context["request"].user
@@ -39,3 +53,6 @@ class CardPostSerializer(serializers.ModelSerializer):
     def get_large_image_url(self, obj):
         return S3Service.generate_large_image_presigned_get_url(obj.image_key)
 
+    def get_is_shared(self, obj):
+        return hasattr(obj, "shared_card")
+    
