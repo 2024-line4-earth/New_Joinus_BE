@@ -17,7 +17,7 @@ class SharedCardListCreateView(views.APIView):
         serializer = SharedCardSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             shared_card = serializer.save()
-            return Response(SharedCardSerializer(shared_card, context={"request": request}, hide_is_liked=False).data, status=status.HTTP_201_CREATED)
+            return Response(SharedCardSerializer(shared_card, context={"request": request}, hide_is_liked=False, hide_is_pinned=False).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SharedCardDetailView(views.APIView):
@@ -25,6 +25,6 @@ class SharedCardDetailView(views.APIView):
 
     def get(self, request, pk):
         shared_card = get_object_or_404(SharedCard.objects.select_related("user", "cardpost"), pk=pk)
-        serializer = SharedCardSerializer(shared_card, context={"request": request}, hide_is_liked=False)
+        serializer = SharedCardSerializer(shared_card, context={"request": request}, hide_is_liked=False, hide_is_pinned=False)
         return Response(serializer.data)
     
