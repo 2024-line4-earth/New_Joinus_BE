@@ -1,11 +1,13 @@
-from rest_framework import generics, permissions
+from rest_framework import views, permissions
 from join.models import AvailableFrame
 from join.serializers import AvailableFrameSerializer
 from rest_framework.response import Response
 
-class AvailableFrameListView(generics.ListAPIView):
+class AvailableFrameApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class   = AvailableFrameSerializer
 
-    def get_queryset(self):
-        return AvailableFrame.objects.filter(purchase__user=self.request.user)
+    def get(self, request):
+        frames_qs = AvailableFrame.objects.filter(purchase__user=request.user)
+        frame_names = list(frames_qs.values_list("frame_name", flat=True))
+        return Response({"frame_names": frame_names})

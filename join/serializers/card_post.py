@@ -6,25 +6,22 @@ from constants import ServiceConfigConstants as SCC
 
 class CardPostSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(write_only=True)
-    keywords = serializers.ListField(
-        child=serializers.ChoiceField(choices=Keyword.choices),
-        min_length=1,
-        allow_empty=False,
-        write_only=True,
+    keyword = serializers.ChoiceField(
+        choices=Keyword.choices,
     )
     small_image_url = serializers.SerializerMethodField(read_only=True)
     large_image_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = CardPost
-        fields = ["id", "keywords", "image",
+        fields = ["id", "keyword", "image",
                     "small_image_url", "large_image_url", "created_at"]
-        read_only_fields = ["id", "small_image_url", "large_image_url","created_at"]
+        read_only_fields = ["id", "small_image_url", "large_image_url", "created_at"]
 
     def create(self, validated_data):
         user = self.context["request"].user
         img_file = validated_data.pop("image")
-        keywords = validated_data.pop("keywords")
+        keyword = validated_data.pop("keyword")
 
         key = build_image_key(user.id, ext=img_file.name.split(".")[-1])
         S3Service.upload_fileobj(img_file, key, content_type=img_file.content_type)
@@ -32,7 +29,7 @@ class CardPostSerializer(serializers.ModelSerializer):
         instance = CardPost.objects.create(
             user=user,
             image_key=key,
-            keywords=keywords,
+            keyword=keyword,
         )
         PointService.add(user, SCC.CARDPOST_CREATE_POINT, "실천 카드 생성")
         return instance
