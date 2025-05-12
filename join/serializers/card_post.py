@@ -31,7 +31,6 @@ class CardPostSerializer(serializers.ModelSerializer):
             image_key=key,
             keyword=keyword,
         )
-        PointService.add(user, SCC.CARDPOST_CREATE_POINT, "실천 카드 생성")
         return instance
 
     def get_small_image_url(self, obj):

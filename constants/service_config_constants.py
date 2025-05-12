@@ -13,7 +13,7 @@ class ServiceConfigConstants:
     SMALL_IMAGE_WIDTH: Final[int] = int(169)
     SMALL_IMAGE_HEIGHT: Final[int] = int(225)
 
-    CARDPOST_CREATE_POINT: Final[int] = int(100)
+    SHAREDCARD_CREATE_POINT: Final[int] = int(50)
 
     RANK_TOP3_REWARD: Final[int] = int(1000)
     
