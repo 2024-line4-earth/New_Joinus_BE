@@ -10,10 +10,10 @@ class SharedCard(models.Model):
         related_name="shared_cards",
         help_text="공유한 사용자",
     )
-    cardpost = models.ForeignKey(
-        "join.CardPost",                # join 앱에 이미 존재
+    cardpost = models.OneToOneField(
+        "join.CardPost",                
         on_delete=models.CASCADE,
-        related_name="shared_cards",
+        related_name="shared_card",
         help_text="원본 카드",
     )
     description = models.TextField(help_text="추가 설명")

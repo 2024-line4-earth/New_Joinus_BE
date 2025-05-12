@@ -23,6 +23,7 @@ class CardPost(models.Model):
         null=False,
         blank=False
     )
+    was_shared = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
