@@ -17,10 +17,11 @@ class UsSerializer(serializers.ModelSerializer):
     daily_message = serializers.SerializerMethodField()
     total_cards = serializers.SerializerMethodField()
     my_rank = serializers.SerializerMethodField()
+    step = serializers.SerializerMethodField()
 
     class Meta:
         model = Us
-        fields = ("username", "my_rank", "current_theme", "points", "daily_message", "total_cards", "available_items")
+        fields = ("username", "my_rank", "current_theme", "points", "step", "daily_message", "total_cards", "available_items")
 
     # 총 누적 카드 개수
     def get_total_cards(self, obj):
@@ -72,3 +73,11 @@ class UsSerializer(serializers.ModelSerializer):
 
         # redis에 없는 유저는 꼴찌
         return len(sorted_users) + 1
+    
+    # 스텝(막대기바) 구하기
+    def get_step(self, obj):
+        total = CardPost.objects.filter(user=obj.user).count()
+
+        if total == 0:
+            return 0
+        return (total - 1) % 4 + 1
