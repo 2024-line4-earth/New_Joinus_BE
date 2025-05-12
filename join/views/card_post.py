@@ -15,7 +15,7 @@ class CardPostApiView(views.APIView):
 
     def get(self, request):
         queryset = CardPost.objects.filter(user=request.user)
-        serializer = CardPostSerializer(queryset, many=True, context={"request": request})
+        serializer = CardPostSerializer(queryset, many=True, context={"request": request}, hide_large_image_url=True)
         return Response({"cardposts": serializer.data})
 
     def post(self, request):
