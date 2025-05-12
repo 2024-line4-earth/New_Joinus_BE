@@ -5,6 +5,7 @@ from share.models import SharedCard
 from join.serializers import CardPostSerializer
 from constants import ServiceConfigConstants as SCC
 from django.db import IntegrityError
+from share.models import CardLike
 
 class SharedCardSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -12,11 +13,28 @@ class SharedCardSerializer(serializers.ModelSerializer):
     cardpost_id = serializers.PrimaryKeyRelatedField(
         queryset=CardPost.objects.all(), write_only=True, source="cardpost"
     )
+    is_liked = serializers.SerializerMethodField()
+
     class Meta:
         model = SharedCard
-        fields = ["id", "user", "cardpost", "cardpost_id", "description", "created_at"]
+        fields = [
+            "id",
+            "user",
+            "cardpost",
+            "cardpost_id",
+            "description",
+            "like_count",
+            "is_liked",
+            "created_at",
+        ]
         read_only_fields = ["created_at"]
 
+    def __init__(self, *args, **kwargs):
+        hide_is_liked = kwargs.pop("hide_is_liked", True)
+        super().__init__(*args, **kwargs)
+        if hide_is_liked:
+            self.fields.pop("is_liked", None)
+    
     def validate(self, attrs):
         # 현재 로그인한 사용자
         user = self.context["request"].user
@@ -39,3 +57,8 @@ class SharedCardSerializer(serializers.ModelSerializer):
         shared_card.cardpost.save(update_fields=["was_shared"])
         return shared_card
     
+    def get_is_liked(self, obj):
+        user = self.context["request"].user
+        if user.is_anonymous:
+            return False
+        return CardLike.objects.filter(user=user, sharedcard=obj).exists()
