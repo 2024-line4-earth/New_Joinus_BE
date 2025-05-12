@@ -6,8 +6,15 @@ from join.models.card_post import CardPost
 
 def build_image_key(user_id: int, ext: str = "jpg") -> str:
     ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
-    return f"{SCC.S3_POST_IMAGE_FOLDER_NAME}{ts}_{user_id}-{uuid4()}.{ext}"
+    return f"{SCC.S3_POST_IMAGE_FOLDER_NAME}{user_id}/{ts}-{uuid4()}.{ext}"
 
+def to_small_key(original_key: str) -> str:
+    name, ext = original_key.rsplit(".", 1)
+    return f"{name}-small.{ext}"
+
+def to_large_key(original_key: str) -> str:
+    name, ext = original_key.rsplit(".", 1)
+    return f"{name}-large.{ext}"
 
 r = redis.StrictRedis(host="127.0.0.1", port=6379, db=0)
 
