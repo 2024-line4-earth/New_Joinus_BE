@@ -7,7 +7,7 @@ class PinnedSharedCard(models.Model):
         on_delete=models.CASCADE,
         related_name="pinned_cards"
     )
-    shared_card = models.OneToOneField( 
+    sharedcard = models.OneToOneField( 
         "share.SharedCard",
         on_delete=models.CASCADE,
         related_name="pinned_by"
@@ -16,7 +16,7 @@ class PinnedSharedCard(models.Model):
 
     class Meta:
         db_table = "share_pinnedsharedcard"
-        unique_together = ("user", "shared_card")  
+        unique_together = ("user", "sharedcard")  
 
     def __str__(self):
         return f"{self.user_id} pinned {self.shared_card_id}"

@@ -14,7 +14,7 @@ class PinnedSharedCardCreateDeleteView(views.APIView):
         serializer.is_valid(raise_exception=True)
 
         user = request.user
-        shared_card = serializer.validated_data["shared_card"]
+        shared_card = serializer.validated_data["sharedcard"]
 
         pinned = PinnedSharedCardService.add(user, shared_card)
         return Response(PinnedSharedCardSerializer(pinned).data, status=status.HTTP_201_CREATED)
@@ -22,7 +22,7 @@ class PinnedSharedCardCreateDeleteView(views.APIView):
     # 핀 해제
     def delete(self, request):
         user = request.user
-        shared_card_id = request.data.get("shared_card")
+        shared_card_id = request.data.get("sharedcard")
         shared_card = SharedCard.objects.get(pk=shared_card_id)
 
         deleted = PinnedSharedCardService.remove(user, shared_card)

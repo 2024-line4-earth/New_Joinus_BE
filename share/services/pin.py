@@ -15,16 +15,16 @@ class PinDoesNotExistException(exceptions.APIException):
 class PinnedSharedCardService:
     @classmethod
     @transaction.atomic
-    def add(cls, user, shared_card) -> PinnedSharedCard:
-        if PinnedSharedCard.objects.filter(user=user, shared_card=shared_card).exists():
+    def add(cls, user, sharedcard) -> PinnedSharedCard:
+        if PinnedSharedCard.objects.filter(user=user, sharedcard=sharedcard).exists():
             raise AlreadyPinnedException()
-        return PinnedSharedCard.objects.create(user=user, shared_card=shared_card)
+        return PinnedSharedCard.objects.create(user=user, sharedcard=sharedcard)
 
     @classmethod
     @transaction.atomic
-    def remove(cls, user, shared_card) -> int:
+    def remove(cls, user, sharedcard) -> int:
         try:
-            pin = PinnedSharedCard.objects.get(user=user, shared_card=shared_card)
+            pin = PinnedSharedCard.objects.get(user=user, sharedcard=sharedcard)
             deleted, _ = pin.delete()
             return deleted
         except PinnedSharedCard.DoesNotExist:
