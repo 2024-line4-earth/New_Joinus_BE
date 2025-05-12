@@ -28,9 +28,12 @@ class CardPostSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         hide_is_shared = kwargs.pop("hide_is_shared", False)
+        hide_large_image_url = kwargs.pop("hide_large_image_url", False)
         super().__init__(*args, **kwargs)
         if hide_is_shared:
             self.fields.pop("is_shared", None)
+        if hide_large_image_url:
+            self.fields.pop("large_image_url", None)
 
     def create(self, validated_data):
         user = self.context["request"].user

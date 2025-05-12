@@ -31,9 +31,16 @@ class SharedCardSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         hide_is_liked = kwargs.pop("hide_is_liked", True)
+        hide_large_image_url = kwargs.pop("hide_large_image_url", False)
         super().__init__(*args, **kwargs)
         if hide_is_liked:
             self.fields.pop("is_liked", None)
+        if hide_large_image_url:
+            self.fields["cardpost"] = CardPostSerializer(
+                read_only=True,
+                hide_is_shared=True,
+                hide_large_image_url=hide_large_image_url,
+            )
     
     def validate(self, attrs):
         # 현재 로그인한 사용자

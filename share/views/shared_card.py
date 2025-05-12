@@ -10,7 +10,7 @@ class SharedCardListCreateView(views.APIView):
 
     def get(self, request):
         queryset = SharedCard.objects.select_related("user", "cardpost").all()
-        serializer = SharedCardSerializer(queryset, many=True)
+        serializer = SharedCardSerializer(queryset, many=True, hide_large_image_url=True)
         return Response({"sharedcards": serializer.data})
     
     def post(self, request):
