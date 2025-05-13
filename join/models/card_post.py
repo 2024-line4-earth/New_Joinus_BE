@@ -24,6 +24,7 @@ class CardPost(models.Model):
         blank=False
     )
     was_shared = models.BooleanField(default=False)
+    has_image_url_share_been_notified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -32,5 +33,3 @@ class CardPost(models.Model):
 
     def __str__(self) -> str:
         return f"CardPost({self.id}) by {self.user_id} in {self.created_at}"
-
-
