@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-class PinnedSharedCard(models.Model):
+class PinnedCard(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -19,4 +19,4 @@ class PinnedSharedCard(models.Model):
         unique_together = ("user", "sharedcard")  
 
     def __str__(self):
-        return f"{self.user_id} pinned {self.shared_card_id}"
+        return f"{self.user_id} pinned {self.sharedcard_id}"

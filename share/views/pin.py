@@ -1,9 +1,9 @@
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
 from share.models import SharedCard
-from share.models import PinnedSharedCard
+from share.models import PinnedCard
 from share.serializers.pin import PinnedSharedCardSerializer
-from share.services.pin import PinnedSharedCardService
+from share.services.pin import PinnedCardService
 
 class PinnedSharedCardCreateDeleteView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -16,7 +16,7 @@ class PinnedSharedCardCreateDeleteView(views.APIView):
         user = request.user
         shared_card = serializer.validated_data["sharedcard"]
 
-        pinned = PinnedSharedCardService.add(user, shared_card)
+        pinned = PinnedCardService.add(user, shared_card)
         return Response(PinnedSharedCardSerializer(pinned).data, status=status.HTTP_201_CREATED)
 
     # 핀 해제
@@ -25,5 +25,5 @@ class PinnedSharedCardCreateDeleteView(views.APIView):
         shared_card_id = request.data.get("sharedcard")
         shared_card = SharedCard.objects.get(pk=shared_card_id)
 
-        deleted = PinnedSharedCardService.remove(user, shared_card)
+        deleted = PinnedCardService.remove(user, shared_card)
         return Response({"deleted": deleted}, status=status.HTTP_204_NO_CONTENT)

@@ -7,7 +7,7 @@ from django.db import IntegrityError
 from share.models import (
     SharedCard,
     CardLike,
-    PinnedSharedCard,
+    PinnedCard,
 )
 class SharedCardSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -60,16 +60,16 @@ class SharedCardSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
-            shared_card = SharedCard.objects.create(**validated_data)
+            sharedcard = SharedCard.objects.create(**validated_data)
         except IntegrityError:
             raise serializers.ValidationError({"non_field_errors": ["이미 공유된 카드입니다."]})
         
-        if not shared_card.cardpost.was_shared:
-            PointService.add(shared_card.user, SCC.SHAREDCARD_CREATE_POINT, "공유 보상")
+        if not sharedcard.cardpost.was_shared:
+            PointService.add(sharedcard.user, SCC.SHAREDCARD_CREATE_POINT, "공유 보상")
 
-        shared_card.cardpost.was_shared = True
-        shared_card.cardpost.save(update_fields=["was_shared"])
-        return shared_card
+        sharedcard.cardpost.was_shared = True
+        sharedcard.cardpost.save(update_fields=["was_shared"])
+        return sharedcard
     
     def get_is_liked(self, obj):
         user = self.context["request"].user
@@ -79,4 +79,5 @@ class SharedCardSerializer(serializers.ModelSerializer):
     
     def get_is_pinned(self, obj):
         user = self.context["request"].user
-        return PinnedSharedCard.objects.filter(user=user, shared_card=obj).exists()
+        return PinnedCard.objects.filter(user=user, sharedcard=obj).exists()
+    

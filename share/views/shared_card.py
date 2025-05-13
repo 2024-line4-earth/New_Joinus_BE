@@ -1,7 +1,11 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
-from share.models import SharedCard
+from django.db.models import Q, Prefetch
+from share.models import (
+    SharedCard,
+    PinnedCard,
+)
 from share.serializers.shared_card import (
     SharedCardSerializer,
 )

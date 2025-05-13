@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from share.models import PinnedSharedCard
+from share.models import PinnedCard
 
 class PinnedSharedCardSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
-        model = PinnedSharedCard
+        model = PinnedCard
         fields = ["id", "user", "sharedcard", "created_at"]
         read_only_fields = ["created_at"]
