@@ -1,22 +1,54 @@
 from rest_framework import serializers
 from join.models import CardPost
 from join.services import PointService
-from share.models import SharedCard
 from join.serializers import CardPostSerializer
 from constants import ServiceConfigConstants as SCC
 from django.db import IntegrityError
-
+from share.models import (
+    SharedCard,
+    CardLike,
+    PinnedSharedCard,
+)
 class SharedCardSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     cardpost = CardPostSerializer(read_only=True, hide_is_shared=True)
     cardpost_id = serializers.PrimaryKeyRelatedField(
         queryset=CardPost.objects.all(), write_only=True, source="cardpost"
     )
+    is_liked = serializers.SerializerMethodField()
+    is_pinned = serializers.SerializerMethodField()
+
     class Meta:
         model = SharedCard
-        fields = ["id", "user", "cardpost", "cardpost_id", "description", "created_at"]
+        fields = [
+            "id",
+            "user",
+            "cardpost",
+            "cardpost_id",
+            "description",
+            "like_count",
+            "is_liked",
+            "is_pinned",
+            "created_at",
+        ]
         read_only_fields = ["created_at"]
 
+    def __init__(self, *args, **kwargs):
+        hide_is_liked = kwargs.pop("hide_is_liked", True)
+        hide_is_pinned = kwargs.pop("hide_is_pinned", True)
+        hide_large_image_url = kwargs.pop("hide_large_image_url", False)
+        super().__init__(*args, **kwargs)
+        if hide_is_liked:
+            self.fields.pop("is_liked", None)
+        if hide_is_pinned:
+            self.fields.pop("is_pinned", None)
+        if hide_large_image_url:
+            self.fields["cardpost"] = CardPostSerializer(
+                read_only=True,
+                hide_is_shared=True,
+                hide_large_image_url=hide_large_image_url,
+            )
+    
     def validate(self, attrs):
         # 현재 로그인한 사용자
         user = self.context["request"].user
@@ -39,3 +71,12 @@ class SharedCardSerializer(serializers.ModelSerializer):
         shared_card.cardpost.save(update_fields=["was_shared"])
         return shared_card
     
+    def get_is_liked(self, obj):
+        user = self.context["request"].user
+        if user.is_anonymous:
+            return False
+        return CardLike.objects.filter(user=user, sharedcard=obj).exists()
+    
+    def get_is_pinned(self, obj):
+        user = self.context["request"].user
+        return PinnedSharedCard.objects.filter(user=user, shared_card=obj).exists()
