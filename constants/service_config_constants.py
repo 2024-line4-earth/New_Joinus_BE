@@ -15,6 +15,7 @@ class ServiceConfigConstants:
 
     SHAREDCARD_CREATE_POINT: Final[int] = int(50)
     CARDPOST_SHARE_NOTIFIED_POINT: Final[int] = int(20)
+    MISSION_COMPLETE_REWARD_POINT: Final[int] = int(100)
 
     RANK_TOP3_REWARD: Final[int] = int(1000)
     

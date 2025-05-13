@@ -10,6 +10,7 @@ from share.models import (
     PinnedCard,
     StoredCard,
 )
+from share.models import UserMissionState
 class SharedCardSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     cardpost = CardPostSerializer(read_only=True, hide_is_shared=True)
@@ -75,9 +76,19 @@ class SharedCardSerializer(serializers.ModelSerializer):
         
         if not sharedcard.cardpost.was_shared:
             PointService.add(sharedcard.user, SCC.SHAREDCARD_CREATE_POINT, "공유 보상")
+            sharedcard.cardpost.was_shared = True
+            sharedcard.cardpost.save(update_fields=["was_shared"])
+            
+            # 실천카드가 처음 공유되었을 때만 미션 달성여부 확인
+            try:
+                mission_state = sharedcard.user.usermissionstate
+                if not mission_state.is_completed and mission_state.cardmission.keyword == sharedcard.cardpost.keyword:
+                    mission_state.is_completed = True
+                    mission_state.save(update_fields=["is_completed"])
+                    PointService.add(sharedcard.user, SCC.MISSION_COMPLETE_REWARD_POINT, "일일 미션 완료 보상")
+            except UserMissionState.DoesNotExist:
+                pass
 
-        sharedcard.cardpost.was_shared = True
-        sharedcard.cardpost.save(update_fields=["was_shared"])
         return sharedcard
     
     def get_is_liked(self, obj):
