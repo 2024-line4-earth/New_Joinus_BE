@@ -9,6 +9,7 @@ from share.views.comment import CommentViewSet
 from share.views.card_like import CardLikeCreateDeleteView
 from share.views.card_report import CardReportCreateView
 from share.views.pin import PinnedSharedCardCreateDeleteView
+from share.views.stored_card import StoredCardCreateDeleteView
 
 router = DefaultRouter()
 router.register(r"comments", CommentViewSet, basename="comment")
@@ -20,4 +21,5 @@ urlpatterns = [
     path("likes/", CardLikeCreateDeleteView.as_view(), name="card-like"),
     path("reports/", CardReportCreateView.as_view(), name="card-report"),
     path("pins/", PinnedSharedCardCreateDeleteView.as_view(), name="pin"),
+    path("store/", StoredCardCreateDeleteView.as_view(), name="store"),
 ]
