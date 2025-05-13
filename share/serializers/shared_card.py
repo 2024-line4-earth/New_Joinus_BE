@@ -60,6 +60,9 @@ class SharedCardSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         cardpost = attrs.get("cardpost")
 
+        if self.instance is not None:
+            return attrs
+
         if cardpost.user != user:
             raise serializers.ValidationError({"non_field_errors": ["자신이 작성한 카드만 공유(게시) 할 수 있습니다."]})
         return attrs
