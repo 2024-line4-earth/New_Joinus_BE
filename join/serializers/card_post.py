@@ -12,7 +12,7 @@ class CardPostSerializer(serializers.ModelSerializer):
     small_image_url = serializers.SerializerMethodField(read_only=True)
     large_image_url = serializers.SerializerMethodField(read_only=True)
     is_shared = serializers.SerializerMethodField()
-
+    has_image_url_share_been_notified = serializers.BooleanField(read_only=True)
     class Meta:
         model = CardPost
         fields = [
@@ -22,6 +22,7 @@ class CardPostSerializer(serializers.ModelSerializer):
             "small_image_url", 
             "large_image_url", 
             "is_shared",
+            "has_image_url_share_been_notified",
             "created_at"
         ]
         read_only_fields = ["id", "small_image_url", "large_image_url", "created_at"]
@@ -29,11 +30,14 @@ class CardPostSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         hide_is_shared = kwargs.pop("hide_is_shared", False)
         hide_large_image_url = kwargs.pop("hide_large_image_url", False)
+        hide_has_image_url_share_been_notified = kwargs.pop("hide_has_image_url_share_been_notified", True)
         super().__init__(*args, **kwargs)
         if hide_is_shared:
             self.fields.pop("is_shared", None)
         if hide_large_image_url:
             self.fields.pop("large_image_url", None)
+        if hide_has_image_url_share_been_notified:
+            self.fields.pop("has_image_url_share_been_notified", None)
 
     def create(self, validated_data):
         user = self.context["request"].user
