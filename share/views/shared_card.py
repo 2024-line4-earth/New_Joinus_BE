@@ -32,3 +32,30 @@ class SharedCardDetailView(views.APIView):
         serializer = SharedCardSerializer(shared_card, context={"request": request}, hide_is_liked=False, hide_is_pinned=False)
         return Response(serializer.data)
     
+class MySharedCardView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        query_params = request.query_params
+
+        are_targets_stored = query_params.get("are_targets_stored", "false").lower() == "true"
+
+        queryset = SharedCard.objects.filter(user=user).select_related("cardpost")
+
+        if are_targets_stored:
+            queryset = queryset.filter(stored_by__user=user)
+            queryset = queryset.order_by("-created_at")
+        else:
+            queryset = queryset.order_by("-pinned_by__user", "-created_at")
+
+        serializer = SharedCardSerializer(
+            queryset,
+            many=True,
+            context={"request": request},
+            hide_large_image_url=True,
+            hide_is_liked=True,
+            hide_is_pinned=False,
+            hide_is_stored=False,
+        )
+        return Response({"sharedcards": serializer.data})
