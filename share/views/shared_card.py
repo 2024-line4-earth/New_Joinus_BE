@@ -8,8 +8,11 @@ from share.models import (
 from share.serializers.shared_card import (
     SharedCardSerializer,
 )
+from share.pagination import SharedCardCursorPagination
+
 class SharedCardView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = SharedCardCursorPagination
 
     def get(self, request):
         user = request.user
@@ -32,15 +35,18 @@ class SharedCardView(views.APIView):
         else:
             queryset = queryset.order_by("-created_at")
 
+        # 페이징 처리
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
         serializer = SharedCardSerializer(
-            queryset,
+            page,
             many=True,
             context={"request": request},
             hide_large_image_url=True,
             hide_is_liked=True,
             hide_is_pinned=True,
         )
-        return Response({"sharedcards": serializer.data})
+        return paginator.get_paginated_response({"sharedcards": serializer.data})
 
 
     def post(self, request):
@@ -60,6 +66,7 @@ class SharedCardDetailView(views.APIView):
     
 class MySharedCardView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = SharedCardCursorPagination
 
     def get(self, request):
         user = request.user
@@ -74,9 +81,12 @@ class MySharedCardView(views.APIView):
             queryset = queryset.order_by("-created_at")
         else:
             queryset = queryset.order_by("-pinned_by__user", "-created_at")
-
+    
+        # 페이징 처리
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
         serializer = SharedCardSerializer(
-            queryset,
+            page,
             many=True,
             context={"request": request},
             hide_large_image_url=True,
@@ -84,4 +94,4 @@ class MySharedCardView(views.APIView):
             hide_is_pinned=False,
             hide_is_stored=False,
         )
-        return Response({"sharedcards": serializer.data})
+        return paginator.get_paginated_response({"sharedcards": serializer.data})
