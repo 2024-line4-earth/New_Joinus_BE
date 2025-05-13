@@ -1,6 +1,9 @@
 from django.contrib import admin
 from .models import (
-    CardPost, UserTutorialState, AvailableFrame, PointRecord
+    CardPost,
+    UserTutorialState,
+    AvailableFrame,
+    PointRecord,
 )
 
 admin.site.register(CardPost)
