@@ -1,22 +1,48 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
-from django.db.models import Q, Prefetch
+from django.utils.timezone import now
 from share.models import (
     SharedCard,
-    PinnedCard,
 )
 from share.serializers.shared_card import (
     SharedCardSerializer,
 )
-class SharedCardListCreateView(views.APIView):
+class SharedCardView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        queryset = SharedCard.objects.select_related("user", "cardpost").all()
-        serializer = SharedCardSerializer(queryset, many=True, hide_large_image_url=True)
+        user = request.user
+        query_params = request.query_params
+
+        only_this_month = query_params.get("only_this_month", "false").lower() == "true"
+        order = query_params.get("order", "recent")
+
+        queryset = SharedCard.objects.select_related("cardpost")
+
+        if only_this_month:
+            today = now()
+            queryset = queryset.filter(
+                created_at__year=today.year,
+                created_at__month=today.month
+            )
+
+        if order == "likes":
+            queryset = queryset.order_by("-like_count", "-created_at")
+        else:
+            queryset = queryset.order_by("-created_at")
+
+        serializer = SharedCardSerializer(
+            queryset,
+            many=True,
+            context={"request": request},
+            hide_large_image_url=True,
+            hide_is_liked=True,
+            hide_is_pinned=True,
+        )
         return Response({"sharedcards": serializer.data})
-    
+
+
     def post(self, request):
         serializer = SharedCardSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
