@@ -68,7 +68,7 @@ class SharedCardDetailView(views.APIView):
 
     def get(self, request, pk):
         shared_card = get_object_or_404(SharedCard.objects.select_related("user", "cardpost"), pk=pk)
-        serializer = SharedCardSerializer(shared_card, context={"request": request}, hide_is_liked=False, hide_is_pinned=False)
+        serializer = SharedCardSerializer(shared_card, context={"request": request}, hide_is_liked=False, hide_is_pinned=False, hide_author_info=False)
         return Response(serializer.data)
 
     def put(self, request, pk):

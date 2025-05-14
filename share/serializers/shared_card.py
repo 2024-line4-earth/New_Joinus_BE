@@ -20,12 +20,14 @@ class SharedCardSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
     is_pinned = serializers.SerializerMethodField()
     is_stored = serializers.SerializerMethodField()
+    author_info = serializers.SerializerMethodField()
 
     class Meta:
         model = SharedCard
         fields = [
             "id",
             "user",
+            "author_info",
             "cardpost",
             "cardpost_id",
             "description",
@@ -42,6 +44,7 @@ class SharedCardSerializer(serializers.ModelSerializer):
         hide_is_pinned = kwargs.pop("hide_is_pinned", True)
         hide_is_stored = kwargs.pop("hide_is_stored", True)
         hide_large_image_url = kwargs.pop("hide_large_image_url", False)
+        hide_author_info = kwargs.pop("hide_author_info", True)
         super().__init__(*args, **kwargs)
         if hide_is_liked:
             self.fields.pop("is_liked", None)
@@ -49,12 +52,15 @@ class SharedCardSerializer(serializers.ModelSerializer):
             self.fields.pop("is_pinned", None)
         if hide_is_stored:
             self.fields.pop("is_stored", None)
+        if hide_author_info:
+            self.fields.pop("author_info", None)
         if hide_large_image_url:
             self.fields["cardpost"] = CardPostSerializer(
                 read_only=True,
                 hide_is_shared=True,
                 hide_large_image_url=hide_large_image_url,
             )
+        
     
     def validate(self, attrs):
         # 현재 로그인한 사용자
@@ -104,3 +110,10 @@ class SharedCardSerializer(serializers.ModelSerializer):
     def get_is_stored(self, obj):
         user = self.context["request"].user
         return StoredCard.objects.filter(user=user, sharedcard=obj).exists()
+
+    def get_author_info(self, obj):
+        user = obj.user
+        return {
+            "user_id": user.id,
+            "username": user.username,
+        }
