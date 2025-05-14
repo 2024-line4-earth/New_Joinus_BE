@@ -61,7 +61,6 @@ class SharedCardSerializer(serializers.ModelSerializer):
                 hide_large_image_url=hide_large_image_url,
             )
         
-    
     def validate(self, attrs):
         # 현재 로그인한 사용자
         user = self.context["request"].user
