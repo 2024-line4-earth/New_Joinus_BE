@@ -10,6 +10,7 @@ from share.serializers.shared_card import (
 )
 from share.pagination import SharedCardCursorPagination
 from rest_framework.exceptions import PermissionDenied
+from users.models import User
 
 class SharedCardView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -68,7 +69,7 @@ class SharedCardDetailView(views.APIView):
 
     def get(self, request, pk):
         shared_card = get_object_or_404(SharedCard.objects.select_related("user", "cardpost"), pk=pk)
-        serializer = SharedCardSerializer(shared_card, context={"request": request}, hide_is_liked=False, hide_is_pinned=False)
+        serializer = SharedCardSerializer(shared_card, context={"request": request}, hide_is_liked=False, hide_is_pinned=False, hide_author_info=False)
         return Response(serializer.data)
 
     def put(self, request, pk):
@@ -122,5 +123,28 @@ class MySharedCardView(views.APIView):
             hide_is_liked=True,
             hide_is_pinned=False,
             hide_is_stored=False,
+        )
+        return paginator.get_paginated_response({"sharedcards": serializer.data})
+
+class UserSharedCardView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = SharedCardCursorPagination
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, pk=user_id)
+        query_params = request.query_params
+
+        queryset = SharedCard.objects.filter(user=user).select_related("cardpost").order_by("-created_at")
+    
+        # 페이징 처리
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
+        serializer = SharedCardSerializer(
+            page,
+            many=True,
+            context={"request": request},
+            hide_large_image_url=True,
+            hide_is_liked=True,
+            hide_is_pinned=True,
         )
         return paginator.get_paginated_response({"sharedcards": serializer.data})
