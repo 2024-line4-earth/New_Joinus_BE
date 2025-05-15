@@ -15,6 +15,7 @@ class Item(models.Model):
     price = models.IntegerField()                       # 아이템 가격
     item_type = models.CharField(max_length=10, choices=ITEM_TYPE_CHOICES)  # 아이템 타입
     note = models.TextField(max_length=200, blank=True)             # 참고 사항
+    image_key = models.CharField(max_length=150, null=True, blank=True)     # 아이템 사진 - 스티커만
 
     def __str__(self):
         return self.item_name

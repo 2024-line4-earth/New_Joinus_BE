@@ -5,7 +5,7 @@ from join.models import PointRecord
 from users.models import User
 
 class InsufficientPointError(exceptions.APIException):
-    status_code = status.HTTP_400_BAD_REQUEST
+    status_code = status.HTTP_202_ACCEPTED
     default_detail = "보유 포인트가 부족합니다."
     default_code = "insufficient_points"
 
@@ -20,6 +20,11 @@ class PointService:
         user_locked.points = bal
         user_locked.save(update_fields=["points"])
         return PointRecord.objects.create(user=user_locked, amount=amount, balance=bal, type=msg)
+    
+    @classmethod
+    @transaction.atomic
+    def minus(cls, user, amount: int, msg: str) -> PointRecord:
+        return cls.add(user, -amount, msg)  # 음수로 add() 재사용
 
     @staticmethod
     def get_balance(user) -> int:

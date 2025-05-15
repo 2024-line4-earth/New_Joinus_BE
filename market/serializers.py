@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 from users.models import User
+from join.services.points import PointService, InsufficientPointError
 
 # 사용자 포인트
 class UserPointsSerializer(serializers.ModelSerializer):
@@ -51,13 +52,10 @@ class PurchaseSerializer(serializers.ModelSerializer):
         if Purchase.objects.filter(user=user, item=item).exists():
             raise serializers.ValidationError("이 품목은 이미 구매하였습니다.")
 
-        # 포인트 부족 체크
-        if user.points < item.price:
-            raise serializers.ValidationError("포인트가 부족합니다.")
-
-        # 포인트 차감 및 저장
-        user.points -= item.price
-        user.save()
+        try:
+            PointService.minus(user, item.price, f"[{item.item_name}] 아이템 구매")
+        except InsufficientPointError as e:
+            raise serializers.ValidationError(str(e.detail))
 
         purchase = Purchase.objects.create(user=user, item=item)
         return purchase
