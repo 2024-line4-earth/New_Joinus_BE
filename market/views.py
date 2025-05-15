@@ -6,9 +6,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
+from join.services.s3 import S3Service
 
 """
-광고와 아이템은 admin에서 등록하면 됨
+아이템은 admin에서 등록하면 됨
 아이템의 note 필드는 admin에서 등록하지 않고 빈칸으로 두면 됨
 """
 
@@ -66,9 +67,28 @@ class ItemDetailAPIView(APIView):
             except serializers.ValidationError as e:
                 return Response({"message": e.detail[0]}, status=status.HTTP_202_ACCEPTED) # 에러 메세지만 출력
 
-        """
-        # 에러 메세지만 출력
-        error_messages = [str(msg[0]) for msg in serializer.errors.values()]
-        return Response({"message": error_messages[0]}, status=status.HTTP_202_ACCEPTED)
-        """
         return Response(serializer.errors, status=status.HTTP_202_ACCEPTED)
+
+# 아이템 다운로드
+class ItemDownloadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        item = get_object_or_404(Item, id=pk)
+
+        # 이미지가 없는 경우
+        if not item.image:
+            return Response({"error": "해당 아이템 이미지가 없습니다."},
+                            status=status.HTTP_202_ACCEPTED)
+
+        # 구매 여부 확인
+        purchased = Purchase.objects.filter(user=request.user, item=item).exists()
+        if not purchased:
+            return Response({"error": "구매한 사용자만 다운로드할 수 있습니다."},
+                            status=status.HTTP_202_ACCEPTED)
+
+        # presigned URL 생성
+        image_key = item.image.name  # 저장된 S3 키
+        url = S3Service.generate_presigned_get_url(image_key)
+
+        return Response({"download_url": url}, status=status.HTTP_200_OK)
