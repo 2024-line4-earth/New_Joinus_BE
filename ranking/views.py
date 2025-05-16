@@ -112,6 +112,8 @@ class RankUserSharedCardView(APIView):
         if rank is None:
             rank = len(top_sorted) + 1
 
+        username = query_user.username
+
         # 페이징 처리
         paginator = self.pagination_class()
         page = paginator.paginate_queryset(queryset, request)
@@ -126,4 +128,5 @@ class RankUserSharedCardView(APIView):
         
         return paginator.get_paginated_response({
             "rank": rank, 
+            "username": username,
             "sharedcards": serializer.data})
