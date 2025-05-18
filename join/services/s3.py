@@ -83,3 +83,12 @@ class S3Service:
             Params={"Bucket": settings.AWS_S3_STORAGE_BUCKET_NAME, "Key": key},
             ExpiresIn=expires,
         )
+
+    @classmethod
+    def upload_original_fileobj(cls, fileobj, key: str, content_type: str = "image/jpeg"):
+        cls._get_client().upload_fileobj(
+            fileobj,
+            settings.AWS_S3_STORAGE_BUCKET_NAME,
+            key,
+            ExtraArgs={"ContentType": content_type},
+        )
