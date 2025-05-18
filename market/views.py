@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAdminUser
 from join.utils import build_image_key
 import uuid
 
+
 """
 아이템은 admin에서 등록하면 됨
 아이템의 note 필드는 admin에서 등록하지 않고 빈칸으로 두면 됨
@@ -111,7 +112,7 @@ class ItemImageUploadView(APIView):
         ext = img_file.name.split(".")[-1]
         key = f"market-items/{uuid.uuid4()}.{ext}"
 
-        S3Service.upload_fileobj(img_file, key, content_type=img_file.content_type)
+        S3Service.upload_original_fileobj(img_file, key, content_type=img_file.content_type)
 
         item.image_key = key
         item.save(update_fields=["image_key"])
