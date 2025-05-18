@@ -85,7 +85,7 @@ class S3Service:
         )
 
     @classmethod
-    def upload_original_fileobj(cls, fileobj, key: str, content_type: str = "image/jpeg"):
+    def upload_original_fileobj(cls, fileobj, key: str, content_type: str = "image/png"):
         cls._get_client().upload_fileobj(
             fileobj,
             settings.AWS_S3_STORAGE_BUCKET_NAME,
