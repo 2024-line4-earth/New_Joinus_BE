@@ -11,6 +11,9 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAdminUser
 from join.utils import build_image_key
 import uuid
+import boto3
+from django.conf import settings
+
 
 """
 아이템은 admin에서 등록하면 됨
@@ -111,7 +114,20 @@ class ItemImageUploadView(APIView):
         ext = img_file.name.split(".")[-1]
         key = f"market-items/{uuid.uuid4()}.{ext}"
 
-        S3Service.upload_fileobj(img_file, key, content_type=img_file.content_type)
+        # 원본 이미지 직접 업로드
+        s3 = boto3.client(
+            "s3",
+            aws_access_key_id=settings.AWS_S3_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_S3_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION,
+        )
+
+        s3.upload_fileobj(
+            img_file,
+            settings.AWS_S3_STORAGE_BUCKET_NAME,
+            key,
+            ExtraArgs={"ContentType": img_file.content_type},
+        )
 
         item.image_key = key
         item.save(update_fields=["image_key"])
