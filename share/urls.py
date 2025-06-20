@@ -7,7 +7,10 @@ from share.views.shared_card import (
     MySharedCardView,
     UserSharedCardView,
 )
-from share.views.comment import CommentView
+from share.views.comment import (
+    CommentView,
+    CommentDetailView,
+)
 from share.views.card_like import CardLikeCreateDeleteView
 from share.views.card_report import CardReportCreateView
 from share.views.pin import PinnedSharedCardCreateDeleteView
@@ -20,6 +23,7 @@ urlpatterns = [
     path("sharedcards/my/", MySharedCardView.as_view(), name="my-sharedcard"),
     path("users/<int:user_id>/sharedcards/", UserSharedCardView.as_view(), name="user-sharedcard"),
     path("comments/", CommentView.as_view(), name="comment"),
+    path("comments/<int:pk>/", CommentDetailView.as_view(), name="comment-detail"),
     path("likes/", CardLikeCreateDeleteView.as_view(), name="card-like"),
     path("reports/", CardReportCreateView.as_view(), name="card-report"),
     path("pins/", PinnedSharedCardCreateDeleteView.as_view(), name="pin"),

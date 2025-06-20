@@ -20,3 +20,17 @@ class CommentView(views.APIView):
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CommentDetailView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    def delete(self, request, pk):
+        try:
+            comment = Comment.objects.get(id=pk)
+        except Comment.DoesNotExist:
+            return Response({"detail": "해당 댓글이 존재하지 않습니다."}, status=status.HTTP_404_NOT_FOUND)
+
+        if comment.user != request.user:
+            return Response({"detail": "해당 댓글을 삭제할 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+
+        comment.delete()
+        return Response({"detail": "댓글이 삭제되었습니다."}, status=status.HTTP_204_NO_CONTENT)
