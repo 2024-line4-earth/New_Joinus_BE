@@ -13,3 +13,8 @@ class MonthlyCardStat(models.Model):
         unique_together = ('user', 'year', 'month')
         ordering = ['-card_count', 'earliest_created_at']
 
+# 랭킹 유의사항 확인
+class NotificationStatus(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    seen = models.BooleanField(default=False)
+
