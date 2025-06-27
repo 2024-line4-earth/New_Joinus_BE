@@ -135,7 +135,7 @@ class RankUserSharedCardView(APIView):
         return paginator.get_paginated_response({
             "rank": rank, 
             "username": username,
-            "sharedcards": serializer.data}, status=status.HTTP_200_OK)
+            "sharedcards": serializer.data})
     
 # 첫번째 유의사항
 class NotificationOneView(APIView):
