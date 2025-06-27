@@ -112,7 +112,13 @@ class SharedCardSerializer(serializers.ModelSerializer):
 
     def get_author_info(self, obj):
         user = obj.user
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            is_owner = user == request.user
+        else:
+            is_owner = False
         return {
             "user_id": user.id,
             "username": user.username,
+            "is_owner": is_owner,
         }
