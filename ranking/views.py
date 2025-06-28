@@ -53,9 +53,11 @@ class TopTwentyView(APIView):
         # 내 순위
         my_rank = next((idx + 1 for idx, entry in enumerate(top_sorted)
                         if entry["user_id"] == request.user.id), None)
-
+        
         my_score = next((entry["score"] for entry in top_sorted
                         if entry["user_id"] == request.user.id), 0)
+        
+        my_username = request.user.username
 
         if my_rank is None:
             my_rank = len(top_sorted) + 1
@@ -67,6 +69,7 @@ class TopTwentyView(APIView):
         return Response({
             "top_20": users_data,
             "my_rank": my_rank,
+            "my_username": my_username,
             "my_card_count": my_score,
             "notification": notif.seen
         }, status=status.HTTP_200_OK)
