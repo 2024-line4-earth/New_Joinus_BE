@@ -3,14 +3,14 @@ from join.models import CardPost
 from join.services import PointService
 from join.serializers import CardPostSerializer
 from constants import ServiceConfigConstants as SCC
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from share.models import (
     SharedCard,
     CardLike,
     PinnedCard,
     StoredCard,
 )
-from share.models import UserMissionState
+from share.utils.mission import get_or_refresh_mission
 class SharedCardSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
     cardpost = CardPostSerializer(read_only=True, hide_is_shared=True)
@@ -73,26 +73,36 @@ class SharedCardSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"non_field_errors": ["자신이 작성한 카드만 공유(게시) 할 수 있습니다."]})
         return attrs
 
+    @transaction.atomic
     def create(self, validated_data):
         try:
             sharedcard = SharedCard.objects.create(**validated_data)
         except IntegrityError:
             raise serializers.ValidationError({"non_field_errors": ["이미 공유된 카드입니다."]})
         
-        if not sharedcard.cardpost.was_shared:
+        locked_cardpost = (
+            CardPost.objects
+            .select_for_update()
+            .get(pk=sharedcard.cardpost_id)
+        )
+
+        if not locked_cardpost.was_shared:
             PointService.add(sharedcard.user, SCC.SHAREDCARD_CREATE_POINT, "공유 보상")
-            sharedcard.cardpost.was_shared = True
-            sharedcard.cardpost.save(update_fields=["was_shared"])
-            
-            # 실천카드가 처음 공유되었을 때만 미션 달성여부 확인
-            try:
-                mission_state = sharedcard.user.usermissionstate
-                if not mission_state.is_completed and mission_state.cardmission.keyword == sharedcard.cardpost.keyword:
-                    mission_state.is_completed = True
-                    mission_state.save(update_fields=["is_completed"])
-                    PointService.add(sharedcard.user, SCC.MISSION_COMPLETE_REWARD_POINT, "일일 미션 완료 보상")
-            except UserMissionState.DoesNotExist:
-                pass
+            locked_cardpost.was_shared = True
+            locked_cardpost.save(update_fields=["was_shared"])
+
+            mission_state, card_mission = get_or_refresh_mission(sharedcard.user)
+            if (
+                not mission_state.is_completed
+                and card_mission.keyword == locked_cardpost.keyword
+            ):
+                mission_state.is_completed = True
+                mission_state.save(update_fields=["is_completed"])
+                PointService.add(
+                    sharedcard.user,
+                    SCC.MISSION_COMPLETE_REWARD_POINT,
+                    "일일 미션 완료 보상",
+                )
 
         return sharedcard
     
