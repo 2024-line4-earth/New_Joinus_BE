@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from .views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +26,5 @@ urlpatterns = [
     path('share/', include('share.urls')),
     path('us/', include('us.urls')),
     path('ranking/', include('ranking.urls')),
+    path('healthz/', HealthCheckView.as_view()),
 ]
