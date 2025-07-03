@@ -32,13 +32,14 @@ class SharedCardView(views.APIView):
                 created_at__month=today.month
             )
 
-        if order == "likes":
-            queryset = queryset.order_by("-like_count", "-created_at")
-        else:
-            queryset = queryset.order_by("-created_at")
-
         # 페이징 처리
         paginator = self.pagination_class()
+
+        if order == "likes":
+            paginator.ordering = ("-like_count", "-created_at")
+        else:
+            paginator.ordering = ("-created_at",)
+
         page = paginator.paginate_queryset(queryset, request)
         serializer = SharedCardSerializer(
             page,
@@ -108,12 +109,15 @@ class MySharedCardView(views.APIView):
 
         if are_targets_stored:
             queryset = queryset.filter(stored_by__user=user)
-            queryset = queryset.order_by("-created_at")
-        else:
-            queryset = queryset.order_by("-pinned_by__user", "-created_at")
     
         # 페이징 처리
         paginator = self.pagination_class()
+
+        if are_targets_stored:
+            paginator.ordering = ("-created_at")
+        else:
+            paginator.ordering = ("-pinned_by__user", "-created_at")
+
         page = paginator.paginate_queryset(queryset, request)
         serializer = SharedCardSerializer(
             page,
