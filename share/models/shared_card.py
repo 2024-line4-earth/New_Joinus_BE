@@ -16,7 +16,10 @@ class SharedCard(models.Model):
         related_name="shared_card",
         help_text="원본 카드",
     )
-    description = models.TextField(help_text="추가 설명")
+    description = models.TextField(
+        help_text="추가 설명",
+        blank=True
+    )
     like_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
